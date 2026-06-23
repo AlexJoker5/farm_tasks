@@ -29,6 +29,17 @@ export default async function GardenPage({
     notFound();
   }
 
+  // Fetch current user's profile for username
+  let currentUsername = "Visitor";
+  if (user) {
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", user.id)
+      .single();
+    currentUsername = currentProfile?.username ?? "Visitor";
+  }
+
   // Fetch garden placements with goal data
   const { data: placements } = await supabase
     .from("garden_placements")
@@ -81,7 +92,10 @@ export default async function GardenPage({
       {/* Nav */}
       <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)] bg-[var(--bg-primary)]/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <Link href={isOwner ? "/dashboard" : "/"} className="flex items-center gap-3">
+          <Link
+            href={isOwner ? "/dashboard" : "/"}
+            className="flex items-center gap-3"
+          >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent-green)] to-[var(--accent-cyan)] flex items-center justify-center">
               <span className="text-sm">🌱</span>
             </div>
@@ -96,7 +110,10 @@ export default async function GardenPage({
         </div>
 
         {isOwner && (
-          <Link href="/dashboard" className="btn-secondary !py-2 !px-4 !text-[0.5rem]">
+          <Link
+            href="/dashboard"
+            className="btn-secondary !py-2 !px-4 !text-[0.5rem]"
+          >
             ← Dashboard
           </Link>
         )}
@@ -109,6 +126,9 @@ export default async function GardenPage({
           unplacedGoals={unplacedGoals}
           isOwner={isOwner}
           ownerName={profile.username}
+          gardenOwnerId={userId}
+          currentUserId={user?.id ?? null}
+          currentUsername={currentUsername}
         />
       </main>
     </div>

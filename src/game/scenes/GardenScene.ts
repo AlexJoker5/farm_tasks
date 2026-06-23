@@ -1,6 +1,7 @@
 /**
  * GardenScene — Main game scene
- * Renders a 100x100 tile grid with placed plants and a player character.
+ * Renders a 100x100 tile grid with placed plants, player character,
+ * and remote player avatars with lerp interpolation.
  * Communicates with React via the EventBus.
  */
 import Phaser from "phaser";
@@ -17,6 +18,13 @@ interface PlacedPlant {
   goalId: string;
 }
 
+interface RemotePlayer {
+  sprite: Phaser.GameObjects.Sprite;
+  label: Phaser.GameObjects.Text;
+  targetX: number;
+  targetY: number;
+}
+
 const MILESTONE_TEXTURE: Record<string, string> = {
   SEED: "plant_seed",
   SPROUT: "plant_sprout",
@@ -25,14 +33,19 @@ const MILESTONE_TEXTURE: Record<string, string> = {
   WITHERED: "plant_withered",
 };
 
+const LERP_SPEED = 0.15;
+
 export class GardenScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private highlight!: Phaser.GameObjects.Image;
   private plantSprites: Map<string, Phaser.GameObjects.Image> = new Map();
+  private remotePlayers: Map<string, RemotePlayer> = new Map();
   private eventSub!: Subscription;
   private plants: PlacedPlant[] = [];
   private isOwner: boolean = false;
+  private lastBroadcastX: number = 0;
+  private lastBroadcastY: number = 0;
 
   constructor() {
     super({ key: "GardenScene" });
@@ -43,12 +56,15 @@ export class GardenScene extends Phaser.Scene {
     this.buildGrid();
 
     // Create highlight cursor
-    this.highlight = this.add.image(0, 0, "highlight").setDepth(5).setVisible(false);
+    this.highlight = this.add
+      .image(0, 0, "highlight")
+      .setDepth(5)
+      .setVisible(false);
 
     // Create player
     this.player = this.add.sprite(
-      GRID_WIDTH * TILE_SIZE / 2,
-      GRID_HEIGHT * TILE_SIZE / 2,
+      (GRID_WIDTH * TILE_SIZE) / 2,
+      (GRID_HEIGHT * TILE_SIZE) / 2,
       "player"
     );
     this.player.setDepth(10);
@@ -73,8 +89,6 @@ export class GardenScene extends Phaser.Scene {
     // Input
     if (this.input.keyboard) {
       this.cursors = this.input.keyboard.createCursorKeys();
-
-      // WASD support
       this.input.keyboard.addKeys("W,A,S,D");
     }
 
@@ -84,8 +98,12 @@ export class GardenScene extends Phaser.Scene {
       const gridX = Math.floor(worldPoint.x / TILE_SIZE);
       const gridY = Math.floor(worldPoint.y / TILE_SIZE);
 
-      if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
-        // Check if a plant exists here
+      if (
+        gridX >= 0 &&
+        gridX < GRID_WIDTH &&
+        gridY >= 0 &&
+        gridY < GRID_HEIGHT
+      ) {
         const plant = this.plants.find(
           (p) => p.gridX === gridX && p.gridY === gridY
         );
@@ -108,7 +126,12 @@ export class GardenScene extends Phaser.Scene {
       const gridX = Math.floor(worldPoint.x / TILE_SIZE);
       const gridY = Math.floor(worldPoint.y / TILE_SIZE);
 
-      if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
+      if (
+        gridX >= 0 &&
+        gridX < GRID_WIDTH &&
+        gridY >= 0 &&
+        gridY < GRID_HEIGHT
+      ) {
         this.highlight.setPosition(
           gridX * TILE_SIZE + TILE_SIZE / 2,
           gridY * TILE_SIZE + TILE_SIZE / 2
@@ -119,7 +142,7 @@ export class GardenScene extends Phaser.Scene {
       }
     });
 
-    // Subscribe to React events
+    // Subscribe to events from React / Realtime hook
     this.eventSub = eventBus.subscribe((event: GameEvent) => {
       switch (event.type) {
         case "LOAD_PLANTS":
@@ -130,6 +153,20 @@ export class GardenScene extends Phaser.Scene {
           break;
         case "SET_OWNER":
           this.isOwner = event.payload?.isOwner as boolean;
+          break;
+        case "REMOTE_PLAYER_MOVE":
+          this.handleRemoteMove(event.payload as Record<string, unknown>);
+          break;
+        case "PLAYER_JOIN":
+          // Remote player will appear on first move
+          break;
+        case "PLAYER_LEAVE":
+          this.removeRemotePlayer(event.payload?.userId as string);
+          break;
+        case "PRESENCE_SYNC":
+          this.syncPresence(
+            event.payload?.users as { userId: string; username: string }[]
+          );
           break;
       }
     });
@@ -168,6 +205,39 @@ export class GardenScene extends Phaser.Scene {
       0,
       GRID_HEIGHT * TILE_SIZE
     );
+
+    // Broadcast local player position if moved
+    if (
+      dx !== 0 ||
+      dy !== 0 ||
+      this.lastBroadcastX !== this.player.x ||
+      this.lastBroadcastY !== this.player.y
+    ) {
+      if (dx !== 0 || dy !== 0) {
+        this.lastBroadcastX = this.player.x;
+        this.lastBroadcastY = this.player.y;
+        eventBus.next({
+          type: "LOCAL_PLAYER_MOVE",
+          payload: { x: this.player.x, y: this.player.y },
+        });
+      }
+    }
+
+    // Lerp remote players toward their targets
+    this.remotePlayers.forEach((remote) => {
+      remote.sprite.x = Phaser.Math.Linear(
+        remote.sprite.x,
+        remote.targetX,
+        LERP_SPEED
+      );
+      remote.sprite.y = Phaser.Math.Linear(
+        remote.sprite.y,
+        remote.targetY,
+        LERP_SPEED
+      );
+      // Keep label above sprite
+      remote.label.setPosition(remote.sprite.x, remote.sprite.y - 20);
+    });
   }
 
   private buildGrid() {
@@ -186,12 +256,10 @@ export class GardenScene extends Phaser.Scene {
   }
 
   private loadPlants(plants: PlacedPlant[]) {
-    // Clear existing
     this.plantSprites.forEach((sprite) => sprite.destroy());
     this.plantSprites.clear();
     this.plants = plants || [];
 
-    // Add new
     for (const plant of this.plants) {
       this.addPlantSprite(plant);
     }
@@ -212,7 +280,6 @@ export class GardenScene extends Phaser.Scene {
       )
       .setDepth(3);
 
-    // Interactive: show tooltip on hover
     sprite.setInteractive();
     sprite.on("pointerover", () => {
       eventBus.next({
@@ -228,9 +295,68 @@ export class GardenScene extends Phaser.Scene {
     this.plantSprites.set(key, sprite);
   }
 
+  // ── Multiplayer ──
+
+  private handleRemoteMove(payload: Record<string, unknown>) {
+    const userId = payload.userId as string;
+    const username = payload.username as string;
+    const x = payload.x as number;
+    const y = payload.y as number;
+
+    let remote = this.remotePlayers.get(userId);
+
+    if (!remote) {
+      // Create new remote player sprite
+      const sprite = this.add.sprite(x, y, "player").setDepth(9).setTint(0x9999ff);
+
+      const label = this.add
+        .text(x, y - 20, username, {
+          fontSize: "8px",
+          fontFamily: '"Press Start 2P", monospace',
+          color: "#a78bfa",
+          stroke: "#000",
+          strokeThickness: 2,
+        })
+        .setOrigin(0.5)
+        .setDepth(11);
+
+      remote = { sprite, label, targetX: x, targetY: y };
+      this.remotePlayers.set(userId, remote);
+    }
+
+    // Update target for lerp
+    remote.targetX = x;
+    remote.targetY = y;
+  }
+
+  private removeRemotePlayer(userId: string) {
+    const remote = this.remotePlayers.get(userId);
+    if (remote) {
+      remote.sprite.destroy();
+      remote.label.destroy();
+      this.remotePlayers.delete(userId);
+    }
+  }
+
+  private syncPresence(users: { userId: string; username: string }[]) {
+    // Remove players who left
+    const onlineIds = new Set(users.map((u) => u.userId));
+    this.remotePlayers.forEach((_, id) => {
+      if (!onlineIds.has(id)) {
+        this.removeRemotePlayer(id);
+      }
+    });
+  }
+
   shutdown() {
     if (this.eventSub) {
       this.eventSub.unsubscribe();
     }
+    // Clean up remote players
+    this.remotePlayers.forEach((remote) => {
+      remote.sprite.destroy();
+      remote.label.destroy();
+    });
+    this.remotePlayers.clear();
   }
 }

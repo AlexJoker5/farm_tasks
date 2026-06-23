@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PhaserCanvas from "@/components/PhaserCanvas";
 import { placePlant } from "@/app/actions/garden";
+import { useRealtimeGarden } from "@/hooks/useRealtimeGarden";
 
 interface PlacedPlant {
   gridX: number;
@@ -24,6 +25,9 @@ interface GardenClientProps {
   unplacedGoals: UnplacedGoal[];
   isOwner: boolean;
   ownerName: string;
+  gardenOwnerId: string;
+  currentUserId: string | null;
+  currentUsername: string;
 }
 
 export default function GardenClient({
@@ -31,6 +35,9 @@ export default function GardenClient({
   unplacedGoals,
   isOwner,
   ownerName,
+  gardenOwnerId,
+  currentUserId,
+  currentUsername,
 }: GardenClientProps) {
   const [plants, setPlants] = useState(initialPlants);
   const [selectedTile, setSelectedTile] = useState<{
@@ -40,10 +47,18 @@ export default function GardenClient({
   const [showPlantPicker, setShowPlantPicker] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Realtime multiplayer hook
+  const { onlineUsers } = useRealtimeGarden({
+    gardenOwnerId,
+    currentUserId,
+    currentUsername,
+  });
 
   function handleTileClick(gridX: number, gridY: number, hasPlant: boolean) {
     if (!isOwner) return;
-    if (hasPlant) return; // Cell already occupied
+    if (hasPlant) return;
 
     setSelectedTile({ x: gridX, y: gridY });
     setShowPlantPicker(true);
@@ -63,7 +78,6 @@ export default function GardenClient({
       return;
     }
 
-    // Add to local state
     setPlants((prev) => [
       ...prev,
       {
@@ -78,6 +92,13 @@ export default function GardenClient({
     setShowPlantPicker(false);
     setSelectedTile(null);
     setPlacing(false);
+  }
+
+  function handleShareLink() {
+    const url = `${window.location.origin}/garden/${gardenOwnerId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -101,11 +122,51 @@ export default function GardenClient({
           <p className="text-sm text-[var(--text-secondary)]">
             {plants.length} plant{plants.length !== 1 ? "s" : ""} growing
           </p>
-          {isOwner && (
-            <p className="text-xs text-[var(--text-muted)] mt-2">
-              Click an empty tile to place a plant from your goals
-            </p>
-          )}
+
+          {/* Share Link */}
+          <button
+            onClick={handleShareLink}
+            className="mt-3 w-full btn-secondary !py-2 !text-[0.5rem] flex items-center justify-center gap-2"
+          >
+            {copied ? "✅ Copied!" : "🔗 Share Garden Link"}
+          </button>
+        </div>
+
+        {/* Online Users */}
+        <div className="glass-card p-4">
+          <h3 className="pixel-text-sm text-[var(--text-secondary)] mb-3">
+            🟢 Online ({onlineUsers.length + 1})
+          </h3>
+          <div className="space-y-2">
+            {/* Current user */}
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[var(--accent-green)] to-[var(--accent-cyan)] flex items-center justify-center">
+                <span className="text-[8px] text-white font-bold">
+                  {currentUsername.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-sm text-[var(--text-primary)]">
+                {currentUsername}
+              </span>
+              <span className="pixel-text-sm text-[var(--text-muted)] ml-auto">
+                (you)
+              </span>
+            </div>
+
+            {/* Remote users */}
+            {onlineUsers.map((user) => (
+              <div key={user.userId} className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-pink)] flex items-center justify-center">
+                  <span className="text-[8px] text-white font-bold">
+                    {user.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-sm text-[var(--text-primary)]">
+                  {user.username}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Plant Legend */}
@@ -185,8 +246,7 @@ export default function GardenClient({
               🌱 Place a Plant
             </h3>
             <p className="text-sm text-[var(--text-secondary)] mb-4">
-              Tile ({selectedTile?.x}, {selectedTile?.y}) — Choose a goal to
-              plant here
+              Tile ({selectedTile?.x}, {selectedTile?.y}) — Choose a goal
             </p>
 
             {error && (
@@ -197,8 +257,7 @@ export default function GardenClient({
 
             {unplacedGoals.length === 0 ? (
               <p className="text-[var(--text-muted)] text-sm py-4 text-center">
-                No eligible goals. Goals must reach at least Sprout stage (25%)
-                to be planted.
+                No eligible goals. Goals must reach Sprout stage (25%) first.
               </p>
             ) : (
               <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -221,7 +280,8 @@ export default function GardenClient({
                         {goal.title}
                       </p>
                       <p className="text-xs text-[var(--text-muted)]">
-                        {goal.current_milestone} · {goal.goal_type.replace("_", "-")}
+                        {goal.current_milestone} ·{" "}
+                        {goal.goal_type.replace("_", "-")}
                       </p>
                     </div>
                   </button>
