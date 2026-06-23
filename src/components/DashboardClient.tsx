@@ -60,12 +60,21 @@ export default function DashboardClient({
                 : "Plant your first seed to start growing."}
             </p>
           </div>
-          <button
-            onClick={() => setShowCreateGoal(true)}
-            className="btn-primary"
-          >
-            🎯 New Goal
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href={`/garden/${userId}`}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <span>🌳</span>
+              <span>My Garden</span>
+            </a>
+            <button
+              onClick={() => setShowCreateGoal(true)}
+              className="btn-primary"
+            >
+              🎯 New Goal
+            </button>
+          </div>
         </div>
 
         {/* Quick Stats */}
