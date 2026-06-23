@@ -22,8 +22,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Farm Tasks — Grow Your Productivity",
     description:
-      "Turn your goals into a living pixel-art garden. Complete tasks, grow unique plants, and explore your friends' gardens in real-time.",
+      "A gamified spatial productivity platform where your real-world goals grow into a living pixel-art garden.",
+    url: "https://farmtasks.com",
+    siteName: "Farm Tasks",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Farm Tasks — Grow Your Productivity",
+    description: "Grow your goals into a pixel-art garden.",
   },
 };
 
