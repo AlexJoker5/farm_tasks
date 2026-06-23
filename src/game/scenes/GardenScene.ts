@@ -228,10 +228,9 @@ export class GardenScene extends Phaser.Scene {
     this.plantSprites.set(key, sprite);
   }
 
-  destroy() {
+  shutdown() {
     if (this.eventSub) {
       this.eventSub.unsubscribe();
     }
-    super.destroy();
   }
 }
