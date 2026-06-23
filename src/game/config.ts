@@ -1,0 +1,38 @@
+/**
+ * Phaser Game Configuration
+ * Shared config for the garden canvas
+ */
+import Phaser from "phaser";
+import { BootScene } from "@/game/scenes/BootScene";
+import { GardenScene } from "@/game/scenes/GardenScene";
+
+export const TILE_SIZE = 32;
+export const GRID_WIDTH = 100;
+export const GRID_HEIGHT = 100;
+export const VIEWPORT_TILES_X = 20;
+export const VIEWPORT_TILES_Y = 15;
+
+export function createGameConfig(
+  parent: string | HTMLElement
+): Phaser.Types.Core.GameConfig {
+  return {
+    type: Phaser.AUTO,
+    parent,
+    width: VIEWPORT_TILES_X * TILE_SIZE,
+    height: VIEWPORT_TILES_Y * TILE_SIZE,
+    pixelArt: true,
+    backgroundColor: "#0c0e16",
+    scale: {
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
+    scene: [BootScene, GardenScene],
+    physics: {
+      default: "arcade",
+      arcade: {
+        gravity: { x: 0, y: 0 },
+        debug: false,
+      },
+    },
+  };
+}
