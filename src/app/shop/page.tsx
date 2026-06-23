@@ -72,7 +72,13 @@ export default async function ShopPage() {
       <main className="flex-1 px-6 py-8 max-w-6xl mx-auto w-full">
         <ShopClient
           items={items ?? []}
-          inventory={inventory ?? []}
+          inventory={(inventory ?? []).map((inv: any) => ({
+            item_id: inv.item_id,
+            quantity: inv.quantity,
+            shop_items: Array.isArray(inv.shop_items)
+              ? inv.shop_items[0]
+              : inv.shop_items,
+          }))}
           initialBalance={profile?.currency_balance ?? 0}
         />
       </main>
