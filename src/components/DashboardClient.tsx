@@ -62,6 +62,13 @@ export default function DashboardClient({
           </div>
           <div className="flex items-center gap-3">
             <a
+              href="/shop"
+              className="btn-secondary flex items-center gap-2 border-[var(--accent-amber)]/30 hover:border-[var(--accent-amber)]"
+            >
+              <span>🏪</span>
+              <span>Shop</span>
+            </a>
+            <a
               href={`/garden/${userId}`}
               className="btn-secondary flex items-center gap-2"
             >
