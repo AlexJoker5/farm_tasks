@@ -67,12 +67,12 @@ export function useRealtimeGarden({
     // Handle presence sync
     channel.on("presence", { event: "sync" }, () => {
       const state = channel.presenceState();
-      const users: PresenceUser[] = [];
+      const uniqueUsers = new Map<string, PresenceUser>();
 
       Object.values(state).forEach((presences) => {
         (presences as unknown as { userId: string; username: string; avatar?: string }[]).forEach((p) => {
           if (p.userId !== currentUserId) {
-            users.push({
+            uniqueUsers.set(p.userId, {
               userId: p.userId,
               username: p.username,
               avatar: p.avatar || "default",
@@ -80,6 +80,8 @@ export function useRealtimeGarden({
           }
         });
       });
+
+      const users = Array.from(uniqueUsers.values());
 
       setOnlineUsers(users);
 
