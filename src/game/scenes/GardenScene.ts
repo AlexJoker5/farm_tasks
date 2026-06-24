@@ -166,10 +166,10 @@ export class GardenScene extends Phaser.Scene {
           break;
         case "PLAYER_JOIN":
           // A new player joined, wait briefly then tell them where we are
-          // This ensures their client is fully loaded before we broadcast
-          this.time.delayedCall(500, () => {
+          // Use window.setTimeout because Phaser's clock pauses when tab is inactive
+          window.setTimeout(() => {
             this.forceBroadcastPosition();
-          });
+          }, 500);
           break;
         case "PLAYER_LEAVE":
           this.removeRemotePlayer(event.payload?.userId as string);
@@ -178,10 +178,10 @@ export class GardenScene extends Phaser.Scene {
           this.syncPresence(
             event.payload?.users as { userId: string; username: string }[]
           );
-          // Also delay the sync broadcast to avoid race conditions with Phaser init
-          this.time.delayedCall(200, () => {
+          // Use window.setTimeout to avoid Phaser clock pausing
+          window.setTimeout(() => {
             this.forceBroadcastPosition();
-          });
+          }, 200);
           break;
       }
     });
