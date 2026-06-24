@@ -70,7 +70,7 @@ export function useRealtimeGarden({
       const users: PresenceUser[] = [];
 
       Object.values(state).forEach((presences) => {
-        (presences as { userId: string; username: string; avatar?: string }[]).forEach((p) => {
+        (presences as unknown as { userId: string; username: string; avatar?: string }[]).forEach((p) => {
           if (p.userId !== currentUserId) {
             users.push({
               userId: p.userId,
@@ -92,7 +92,7 @@ export function useRealtimeGarden({
 
     // Handle presence join
     channel.on("presence", { event: "join" }, ({ newPresences }) => {
-      (newPresences as { userId: string; username: string }[]).forEach((p) => {
+      (newPresences as unknown as { userId: string; username: string }[]).forEach((p) => {
         if (p.userId !== currentUserId) {
           eventBus.next({
             type: "PLAYER_JOIN",
@@ -107,7 +107,7 @@ export function useRealtimeGarden({
 
     // Handle presence leave
     channel.on("presence", { event: "leave" }, ({ leftPresences }) => {
-      (leftPresences as { userId: string }[]).forEach((p) => {
+      (leftPresences as unknown as { userId: string }[]).forEach((p) => {
         eventBus.next({
           type: "PLAYER_LEAVE",
           payload: { userId: p.userId },
