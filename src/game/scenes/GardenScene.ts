@@ -165,7 +165,8 @@ export class GardenScene extends Phaser.Scene {
           this.handleRemoteMove(event.payload as Record<string, unknown>);
           break;
         case "PLAYER_JOIN":
-          // Remote player will appear on first move
+          // A new player joined, let's tell them where we are
+          this.forceBroadcastPosition();
           break;
         case "PLAYER_LEAVE":
           this.removeRemotePlayer(event.payload?.userId as string);
@@ -174,12 +175,23 @@ export class GardenScene extends Phaser.Scene {
           this.syncPresence(
             event.payload?.users as { userId: string; username: string }[]
           );
+          // Broadcast our position when syncing so others see us
+          this.forceBroadcastPosition();
           break;
       }
     });
 
     // Tell React we're ready
     eventBus.next({ type: "SCENE_READY" });
+  }
+
+  private forceBroadcastPosition() {
+    if (this.player) {
+      eventBus.next({
+        type: "LOCAL_PLAYER_MOVE",
+        payload: { x: this.player.x, y: this.player.y },
+      });
+    }
   }
 
   update() {
