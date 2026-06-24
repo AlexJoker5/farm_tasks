@@ -3,6 +3,7 @@
 import { useState } from "react";
 import GoalCard from "@/components/GoalCard";
 import CreateGoalForm from "@/components/CreateGoalForm";
+import Link from "next/link";
 
 interface Goal {
   id: string;
@@ -29,7 +30,6 @@ interface DashboardClientProps {
   worldTree: WorldTree | null;
   username: string;
   currencyBalance: number;
-  userId: string;
 }
 
 export default function DashboardClient({
@@ -37,7 +37,6 @@ export default function DashboardClient({
   worldTree,
   username,
   currencyBalance,
-  userId,
 }: DashboardClientProps) {
   const [showCreateGoal, setShowCreateGoal] = useState(false);
 
@@ -61,20 +60,20 @@ export default function DashboardClient({
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <a
+            <Link
               href="/shop"
               className="btn-secondary flex items-center gap-2 border-[var(--accent-amber)]/30 hover:border-[var(--accent-amber)]"
             >
               <span>🏪</span>
               <span>Shop</span>
-            </a>
-            <a
-              href={`/garden/${userId}`}
+            </Link>
+            <Link
+              href="/garden"
               className="btn-secondary flex items-center gap-2"
             >
               <span>🌳</span>
               <span>My Garden</span>
-            </a>
+            </Link>
             <button
               onClick={() => setShowCreateGoal(true)}
               className="btn-primary"

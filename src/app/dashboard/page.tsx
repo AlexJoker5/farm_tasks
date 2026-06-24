@@ -83,7 +83,6 @@ export default async function DashboardPage() {
         worldTree={worldTree}
         username={profile?.username ?? "Farmer"}
         currencyBalance={profile?.currency_balance ?? 0}
-        userId={user.id}
       />
     </div>
   );
