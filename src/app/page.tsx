@@ -1,6 +1,17 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect(`/garden/${user.id}`);
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation */}

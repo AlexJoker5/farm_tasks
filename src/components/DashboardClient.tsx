@@ -69,7 +69,7 @@ export default function DashboardClient({
               <span>Shop</span>
             </a>
             <a
-              href={`/garden/${userId}`}
+              href="/garden"
               className="btn-secondary flex items-center gap-2"
             >
               <span>🌳</span>

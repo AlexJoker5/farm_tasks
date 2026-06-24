@@ -61,6 +61,7 @@ export async function placePlant(goalId: string, gridX: number, gridY: number) {
     return { error: error.message };
   }
 
+  revalidatePath(`/garden`);
   revalidatePath(`/garden/${user.id}`);
   return { success: true };
 }
