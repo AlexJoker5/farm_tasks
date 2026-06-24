@@ -88,10 +88,10 @@ export default async function GardenPage({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen w-screen overflow-hidden relative bg-black">
       {/* Nav */}
-      <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)] bg-[var(--bg-primary)]/80 backdrop-blur-md">
-        <div className="flex items-center gap-4">
+      <nav className="absolute top-0 w-full z-40 flex items-center justify-between px-6 py-4 pointer-events-none">
+        <div className="flex items-center gap-4 bg-[var(--bg-primary)]/60 backdrop-blur-md px-4 py-2 rounded-xl border border-[var(--border-default)] pointer-events-auto">
           <Link
             href={isOwner ? "/dashboard" : "/"}
             className="flex items-center gap-3"
@@ -110,17 +110,19 @@ export default async function GardenPage({
         </div>
 
         {isOwner && (
-          <Link
-            href="/dashboard"
-            className="btn-secondary !py-2 !px-4 !text-[0.5rem]"
-          >
-            ← Dashboard
-          </Link>
+          <div className="pointer-events-auto">
+            <Link
+              href="/dashboard"
+              className="btn-secondary !py-2 !px-4 !text-[0.5rem] bg-[var(--bg-primary)]/60 backdrop-blur-md border border-[var(--border-default)]"
+            >
+              ← Dashboard
+            </Link>
+          </div>
         )}
       </nav>
 
       {/* Garden Content */}
-      <main className="flex-1 px-6 py-6 max-w-7xl mx-auto w-full">
+      <main className="absolute inset-0 z-10 w-full h-full pt-20 px-6 pb-6 pointer-events-none">
         <GardenClient
           plants={plants}
           unplacedGoals={unplacedGoals}

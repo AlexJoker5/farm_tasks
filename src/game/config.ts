@@ -7,8 +7,8 @@ import { BootScene } from "@/game/scenes/BootScene";
 import { GardenScene } from "@/game/scenes/GardenScene";
 
 export const TILE_SIZE = 32;
-export const GRID_WIDTH = 100;
-export const GRID_HEIGHT = 100;
+export const GRID_WIDTH = 60;
+export const GRID_HEIGHT = 60;
 export const VIEWPORT_TILES_X = 20;
 export const VIEWPORT_TILES_Y = 15;
 
@@ -18,12 +18,12 @@ export function createGameConfig(
   return {
     type: Phaser.AUTO,
     parent,
-    width: VIEWPORT_TILES_X * TILE_SIZE,
-    height: VIEWPORT_TILES_Y * TILE_SIZE,
+    width: window.innerWidth,
+    height: window.innerHeight,
     pixelArt: true,
     backgroundColor: "#0c0e16",
     scale: {
-      mode: Phaser.Scale.FIT,
+      mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     scene: [BootScene, GardenScene],
