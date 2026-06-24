@@ -72,7 +72,7 @@ export class GardenScene extends Phaser.Scene {
     // Camera follows player
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     
-    // Scale zoom so the 25x25 grid covers the whole screen
+    // Scale zoom so the grid covers the whole screen
     const minZoomX = window.innerWidth / (GRID_WIDTH * TILE_SIZE);
     const minZoomY = window.innerHeight / (GRID_HEIGHT * TILE_SIZE);
     const targetZoom = Math.max(minZoomX, minZoomY, 2); // At least 2x zoom for pixel art feel
