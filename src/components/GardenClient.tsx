@@ -102,18 +102,16 @@ export default function GardenClient({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div className="flex justify-end relative z-10 pointer-events-none h-full">
       {/* Game Canvas */}
-      <div className="flex-1">
-        <PhaserCanvas
-          plants={plants}
-          isOwner={isOwner}
-          onTileClick={handleTileClick}
-        />
-      </div>
+      <PhaserCanvas
+        plants={plants}
+        isOwner={isOwner}
+        onTileClick={handleTileClick}
+      />
 
       {/* Sidebar */}
-      <div className="w-full lg:w-72 space-y-4">
+      <div className="w-72 lg:w-80 space-y-4 pointer-events-auto max-h-full overflow-y-auto pr-2 pb-2">
         {/* Garden Info */}
         <div className="glass-card p-4">
           <h3 className="pixel-text-sm text-[var(--accent-green)] mb-2">
@@ -233,7 +231,7 @@ export default function GardenClient({
 
       {/* Plant Picker Modal */}
       {showPlantPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 pointer-events-auto">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => {

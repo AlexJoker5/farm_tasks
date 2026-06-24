@@ -51,12 +51,13 @@ export default function GoalCard({ goal }: { goal: Goal }) {
     currency_earned?: number;
     milestone?: string;
   } | null>(null);
+  const [now] = useState(() => Date.now());
 
   const progressPercent = Math.round(goal.completion_rate * 100);
   const daysLeft = Math.max(
     0,
     Math.ceil(
-      (new Date(goal.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      (new Date(goal.end_date).getTime() - now) / (1000 * 60 * 60 * 24)
     )
   );
 

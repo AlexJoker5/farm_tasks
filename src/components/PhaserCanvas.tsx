@@ -114,18 +114,18 @@ export default function PhaserCanvas({
   }, [plants, ready]);
 
   return (
-    <div className="relative">
+    <div className="fixed inset-0 z-0 pointer-events-auto">
       {/* Game Canvas Container */}
       <div
         ref={containerRef}
         id="phaser-game"
-        className="w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border-default)]"
+        className="w-full h-full"
         style={{ imageRendering: "pixelated" }}
       />
 
       {/* Loading overlay */}
       {!ready && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-primary)]/80 rounded-xl">
+        <div className="absolute inset-0 flex items-center justify-center bg-[var(--bg-primary)]/80">
           <p className="pixel-text-sm text-[var(--accent-green)] animate-pixel-blink">
             Loading garden...
           </p>
@@ -134,7 +134,7 @@ export default function PhaserCanvas({
 
       {/* Plant tooltip */}
       {tooltip && (
-        <div className="absolute top-4 left-4 px-3 py-2 rounded-lg bg-[var(--bg-card)]/90 border border-[var(--border-default)] backdrop-blur-sm animate-fade-in">
+        <div className="absolute top-24 left-6 px-3 py-2 rounded-lg bg-[var(--bg-card)]/90 border border-[var(--border-default)] backdrop-blur-sm animate-fade-in pointer-events-none">
           <p className="pixel-text-sm text-[var(--accent-green)]">
             {tooltip.title}
           </p>
@@ -145,7 +145,7 @@ export default function PhaserCanvas({
       )}
 
       {/* Controls hint */}
-      <div className="absolute bottom-4 right-4 px-3 py-2 rounded-lg bg-[var(--bg-card)]/70 border border-[var(--border-default)] backdrop-blur-sm">
+      <div className="absolute bottom-6 left-6 px-3 py-2 rounded-lg bg-[var(--bg-card)]/70 border border-[var(--border-default)] backdrop-blur-sm pointer-events-none">
         <p className="pixel-text-sm text-[var(--text-muted)]">
           WASD / ←↑↓→ to move · Click to place
         </p>

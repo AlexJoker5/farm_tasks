@@ -1,6 +1,6 @@
 /**
  * GardenScene — Main game scene
- * Renders a 100x100 tile grid with placed plants, player character,
+ * Renders a 25x25 tile grid with placed plants, player character,
  * and remote player avatars with lerp interpolation.
  * Communicates with React via the EventBus.
  */
@@ -71,6 +71,13 @@ export class GardenScene extends Phaser.Scene {
 
     // Camera follows player
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    
+    // Scale zoom so the grid covers the whole screen
+    const minZoomX = window.innerWidth / (GRID_WIDTH * TILE_SIZE);
+    const minZoomY = window.innerHeight / (GRID_HEIGHT * TILE_SIZE);
+    const targetZoom = Math.max(minZoomX, minZoomY, 2); // At least 2x zoom for pixel art feel
+    this.cameras.main.setZoom(targetZoom);
+    
     this.cameras.main.setBounds(
       0,
       0,
