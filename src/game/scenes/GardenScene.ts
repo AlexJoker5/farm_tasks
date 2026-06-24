@@ -165,8 +165,11 @@ export class GardenScene extends Phaser.Scene {
           this.handleRemoteMove(event.payload as Record<string, unknown>);
           break;
         case "PLAYER_JOIN":
-          // A new player joined, let's tell them where we are
-          this.forceBroadcastPosition();
+          // A new player joined, wait briefly then tell them where we are
+          // This ensures their client is fully loaded before we broadcast
+          this.time.delayedCall(500, () => {
+            this.forceBroadcastPosition();
+          });
           break;
         case "PLAYER_LEAVE":
           this.removeRemotePlayer(event.payload?.userId as string);
@@ -175,8 +178,10 @@ export class GardenScene extends Phaser.Scene {
           this.syncPresence(
             event.payload?.users as { userId: string; username: string }[]
           );
-          // Broadcast our position when syncing so others see us
-          this.forceBroadcastPosition();
+          // Also delay the sync broadcast to avoid race conditions with Phaser init
+          this.time.delayedCall(200, () => {
+            this.forceBroadcastPosition();
+          });
           break;
       }
     });
