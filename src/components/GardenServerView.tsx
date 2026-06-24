@@ -123,7 +123,7 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
           </span>
         </div>
 
-        {isOwner && (
+        {!!user && (
           <div className="pointer-events-auto">
             <Link
               href="/dashboard"
