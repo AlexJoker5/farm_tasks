@@ -72,7 +72,7 @@ export default async function ShopPage() {
       <main className="flex-1 px-6 py-8 max-w-6xl mx-auto w-full">
         <ShopClient
           items={items ?? []}
-          inventory={(inventory ?? []).map((inv: any) => ({
+          inventory={(inventory as unknown as { item_id: string; quantity: number; shop_items: { name: string; texture_key: string; item_type: string } | { name: string; texture_key: string; item_type: string }[] }[] ?? []).map((inv) => ({
             item_id: inv.item_id,
             quantity: inv.quantity,
             shop_items: Array.isArray(inv.shop_items)

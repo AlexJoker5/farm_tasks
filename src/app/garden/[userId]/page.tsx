@@ -60,21 +60,38 @@ export default async function GardenPage({
     )
     .eq("user_id", userId);
 
+  type PlacementWithGoal = {
+    grid_x: number;
+    grid_y: number;
+    goals: {
+      id: string;
+      title: string;
+      current_milestone: string;
+    } | null;
+  };
+
+  type GoalData = {
+    id: string;
+    title: string;
+    current_milestone: string;
+    goal_type: string;
+  };
+
   // Transform for Phaser
-  const plants = (placements ?? [])
-    .filter((p: any) => p.goals)
-    .map((p: any) => ({
+  const plants = (placements as unknown as PlacementWithGoal[] ?? [])
+    .filter((p) => p.goals)
+    .map((p) => ({
       gridX: p.grid_x,
       gridY: p.grid_y,
-      milestone: p.goals.current_milestone,
-      title: p.goals.title,
-      goalId: p.goals.id,
+      milestone: p.goals!.current_milestone,
+      title: p.goals!.title,
+      goalId: p.goals!.id,
     }));
 
   // Fetch unplaced goals (for the owner's plant picker)
-  let unplacedGoals: any[] = [];
+  let unplacedGoals: GoalData[] = [];
   if (isOwner) {
-    const placedGoalIds = plants.map((p: any) => p.goalId);
+    const placedGoalIds = plants.map((p) => p.goalId);
 
     const { data: goals } = await supabase
       .from("goals")
@@ -82,8 +99,8 @@ export default async function GardenPage({
       .eq("user_id", userId)
       .in("current_milestone", ["SPROUT", "SAPLING", "MATURE"]);
 
-    unplacedGoals = (goals ?? []).filter(
-      (g: any) => !placedGoalIds.includes(g.id)
+    unplacedGoals = (goals as unknown as GoalData[] ?? []).filter(
+      (g) => !placedGoalIds.includes(g.id)
     );
   }
 

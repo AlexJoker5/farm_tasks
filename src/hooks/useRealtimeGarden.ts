@@ -5,13 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import eventBus from "@/game/bus/EventBus";
 
-interface PlayerState {
-  userId: string;
-  username: string;
-  x: number;
-  y: number;
-  avatar: string;
-}
+
 
 interface PresenceUser {
   userId: string;
@@ -75,8 +69,8 @@ export function useRealtimeGarden({
       const state = channel.presenceState();
       const users: PresenceUser[] = [];
 
-      Object.values(state).forEach((presences: any[]) => {
-        presences.forEach((p) => {
+      Object.values(state).forEach((presences) => {
+        (presences as { userId: string; username: string; avatar?: string }[]).forEach((p) => {
           if (p.userId !== currentUserId) {
             users.push({
               userId: p.userId,
@@ -98,7 +92,7 @@ export function useRealtimeGarden({
 
     // Handle presence join
     channel.on("presence", { event: "join" }, ({ newPresences }) => {
-      newPresences.forEach((p: any) => {
+      (newPresences as { userId: string; username: string }[]).forEach((p) => {
         if (p.userId !== currentUserId) {
           eventBus.next({
             type: "PLAYER_JOIN",
@@ -113,7 +107,7 @@ export function useRealtimeGarden({
 
     // Handle presence leave
     channel.on("presence", { event: "leave" }, ({ leftPresences }) => {
-      leftPresences.forEach((p: any) => {
+      (leftPresences as { userId: string }[]).forEach((p) => {
         eventBus.next({
           type: "PLAYER_LEAVE",
           payload: { userId: p.userId },
