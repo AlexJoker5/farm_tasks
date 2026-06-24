@@ -28,7 +28,7 @@ export default function CreateGoalForm({ onClose }: CreateGoalFormProps) {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
 
-  const [recurrenceOption, setRecurrenceOption] = useState<"NONE" | "DAILY" | "WEEKLY" | "CUSTOM">("NONE");
+  const [recurrenceOption, setRecurrenceOption] = useState<"NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM">("NONE");
   const [rruleString, setRruleString] = useState("");
   const [rruleDesc, setRruleDesc] = useState("");
   const [showRecurrenceModal, setShowRecurrenceModal] = useState(false);
@@ -45,7 +45,7 @@ export default function CreateGoalForm({ onClose }: CreateGoalFormProps) {
     ]);
   }
 
-  function handleSubTaskChange(id: number, field: string, value: any) {
+  function handleSubTaskChange(id: number, field: string, value: string | boolean) {
     setSubTasks(subTasks.map(st => st.id === id ? { ...st, [field]: value } : st));
   }
 
@@ -57,7 +57,7 @@ export default function CreateGoalForm({ onClose }: CreateGoalFormProps) {
     if (val === "CUSTOM") {
       setShowRecurrenceModal(true);
     } else {
-      setRecurrenceOption(val as any);
+      setRecurrenceOption(val as "NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM");
       const dtstart = startDate.replace(/-/g, "");
       if (val === "NONE") {
         setRruleString("");

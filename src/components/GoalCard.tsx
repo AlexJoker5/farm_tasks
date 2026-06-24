@@ -52,12 +52,6 @@ const MILESTONE_LABELS: Record<string, string> = {
   MATURE: "Mature",
 };
 
-const GOAL_TYPE_LABELS: Record<string, string> = {
-  SHORT_TERM: "Short-term",
-  MEDIUM_TERM: "Medium-term",
-  LONG_TERM: "Long-term",
-};
-
 const GOAL_TYPE_COLORS: Record<string, string> = {
   SHORT_TERM: "var(--accent-green)",
   MEDIUM_TERM: "var(--accent-amber)",
@@ -132,13 +126,6 @@ export default function GoalCard({ goal }: { goal: Goal }) {
   const isMultiple = goal.project_type === 'MULTIPLE';
   const progressPercent = Math.round(goal.completion_rate * 100);
   
-  const daysLeft = Math.max(
-    0,
-    Math.ceil(
-      (new Date(goal.end_date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    )
-  );
-
   const displayEmoji = goal.current_milestone === 'MATURE' 
     ? getMatureEmoji(goal.completion_rate)
     : (MILESTONE_EMOJI[goal.current_milestone] ?? "🌰");
@@ -311,7 +298,7 @@ export default function GoalCard({ goal }: { goal: Goal }) {
 
         {isMultiple && goal.sub_tasks && goal.sub_tasks.length > 0 && goal.plant_state === "GROWING" && (
           <div className="mb-4 space-y-2 bg-[var(--bg-secondary)]/30 p-3 rounded-lg border border-[var(--border-default)]">
-            <p className="text-xs text-[var(--text-muted)] mb-2 uppercase tracking-wider font-semibold">Today's Tasks</p>
+            <p className="text-xs text-[var(--text-muted)] mb-2 uppercase tracking-wider font-semibold">Today&apos;s Tasks</p>
             {goal.sub_tasks.map((st) => {
               const isAlreadyDone = alreadyCompletedSubTasks.includes(st.id);
               const isJustSelected = selectedSubTasks.includes(st.id);

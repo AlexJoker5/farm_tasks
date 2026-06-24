@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Goal, SubTask } from "./GoalCard";
+import { Goal } from "./GoalCard";
 
 interface EditGoalModalProps {
   goal: Goal;
@@ -35,7 +35,7 @@ export default function EditGoalModal({
     }))
   );
 
-  function handleSubTaskChange(id: string, field: string, value: any) {
+  function handleSubTaskChange(id: string, field: string, value: string | boolean) {
     setSubTasksState(prev => prev.map(st => st.id === id ? { ...st, [field]: value } : st));
   }
 

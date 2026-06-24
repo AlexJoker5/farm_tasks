@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RRule, Frequency, Weekday } from "rrule";
+import { RRule, Frequency, Weekday, Options } from "rrule";
 
 interface RecurrenceModalProps {
   onClose: () => void;
@@ -51,7 +51,7 @@ export default function RecurrenceModal({ onClose, onSave, startDate }: Recurren
   }
 
   function handleSave() {
-    const options: any = {
+    const options: Partial<Options> = {
       freq,
       interval,
       dtstart: new Date(startDate + "T00:00:00Z"),

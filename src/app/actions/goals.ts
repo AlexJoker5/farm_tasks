@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-import { RRule, rrulestr } from "rrule";
+import { rrulestr } from "rrule";
 
 export interface CreateGoalPayload {
   title: string;
