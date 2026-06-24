@@ -7,8 +7,8 @@ import { BootScene } from "@/game/scenes/BootScene";
 import { GardenScene } from "@/game/scenes/GardenScene";
 
 export const TILE_SIZE = 32;
-export const GRID_WIDTH = 60;
-export const GRID_HEIGHT = 60;
+export const GRID_WIDTH = 20;
+export const GRID_HEIGHT = 20;
 export const VIEWPORT_TILES_X = 20;
 export const VIEWPORT_TILES_Y = 15;
 

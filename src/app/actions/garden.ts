@@ -15,7 +15,7 @@ export async function placePlant(goalId: string, gridX: number, gridY: number) {
   }
 
   // Validate grid bounds
-  if (gridX < 0 || gridX >= 60 || gridY < 0 || gridY >= 60) {
+  if (gridX < 0 || gridX >= 20 || gridY < 0 || gridY >= 20) {
     return { error: "Invalid grid position" };
   }
 
