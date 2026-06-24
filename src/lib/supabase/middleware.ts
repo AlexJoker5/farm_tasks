@@ -13,10 +13,10 @@ export async function updateSession(request: NextRequest) {
     supabaseKey === "your-supabase-publishable-key-here"
   ) {
     // Supabase not configured — block protected routes, allow everything else
-    const protectedPaths = ["/dashboard", "/garden", "/shop"];
-    const isProtectedRoute = protectedPaths.some((path) =>
-      request.nextUrl.pathname.startsWith(path)
-    );
+    const isProtectedRoute =
+      request.nextUrl.pathname.startsWith("/dashboard") ||
+      request.nextUrl.pathname.startsWith("/shop") ||
+      request.nextUrl.pathname === "/garden";
 
     if (isProtectedRoute) {
       const url = request.nextUrl.clone();
@@ -58,10 +58,10 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Protected routes: redirect unauthenticated users to /login
-  const protectedPaths = ["/dashboard", "/garden", "/shop"];
-  const isProtectedRoute = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname.startsWith("/shop") ||
+    request.nextUrl.pathname === "/garden";
 
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();

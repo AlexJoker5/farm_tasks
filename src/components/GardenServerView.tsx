@@ -35,6 +35,8 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
     currentUsername = currentProfile?.username ?? "Visitor";
   }
 
+  const currentUserId = user?.id ?? `guest_${crypto.randomUUID()}`;
+
   // Fetch garden placements with goal data
   const { data: placements } = await supabase
     .from("garden_placements")
@@ -141,7 +143,7 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
           isOwner={isOwner}
           ownerName={profile.username}
           gardenOwnerId={targetUserId}
-          currentUserId={user?.id ?? null}
+          currentUserId={currentUserId}
           currentUsername={currentUsername}
         />
       </main>
