@@ -1,23 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import GoalCard from "@/components/GoalCard";
+import GoalCard, { Goal } from "@/components/GoalCard";
 import CreateGoalForm from "@/components/CreateGoalForm";
 import Link from "next/link";
-
-interface Goal {
-  id: string;
-  title: string;
-  description: string | null;
-  goal_type: string;
-  current_milestone: string;
-  plant_state: string;
-  completion_rate: number;
-  total_tasks_expected: number;
-  total_tasks_completed: number;
-  start_date: string;
-  end_date: string;
-}
 
 interface WorldTree {
   current_day: number;

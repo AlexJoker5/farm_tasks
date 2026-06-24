@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     supabase.from("profiles").select("*").eq("id", user.id).single(),
     supabase
       .from("goals")
-      .select("*")
+      .select("*, sub_tasks(*), tasks(id, completed_sub_task_ids, created_at)")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
     supabase.from("world_trees").select("*").eq("user_id", user.id).single(),
