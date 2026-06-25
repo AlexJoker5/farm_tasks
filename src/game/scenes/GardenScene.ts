@@ -16,6 +16,7 @@ interface PlacedPlant {
   milestone: string;
   title: string;
   goalId: string;
+  asset_url?: string | null;
 }
 
 interface RemotePlayer {
@@ -36,10 +37,11 @@ const MILESTONE_TEXTURE: Record<string, string> = {
 const LERP_SPEED = 0.15;
 
 export class GardenScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Sprite;
+  private player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private highlight!: Phaser.GameObjects.Image;
-  private plantSprites: Map<string, Phaser.GameObjects.Image> = new Map();
+  private plantGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private plantSprites: Map<string, Phaser.GameObjects.Image | Phaser.GameObjects.Sprite> = new Map();
   private remotePlayers: Map<string, RemotePlayer> = new Map();
   private eventSub!: Subscription;
   private plants: PlacedPlant[] = [];
@@ -61,13 +63,21 @@ export class GardenScene extends Phaser.Scene {
       .setDepth(5)
       .setVisible(false);
 
-    // Create player
-    this.player = this.add.sprite(
+    // Physics group for plants
+    this.plantGroup = this.physics.add.staticGroup();
+
+    // Create player with physics
+    this.player = this.physics.add.sprite(
       (GRID_WIDTH * TILE_SIZE) / 2,
       (GRID_HEIGHT * TILE_SIZE) / 2,
       "player"
     );
     this.player.setDepth(10);
+    this.player.body.setSize(20, 16).setOffset(6, 16);
+    this.player.setCollideWorldBounds(true);
+
+    // Add collision
+    this.physics.add.collider(this.player, this.plantGroup);
 
     // Camera follows player
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
@@ -188,6 +198,13 @@ export class GardenScene extends Phaser.Scene {
 
     // Tell React we're ready
     eventBus.next({ type: "SCENE_READY" });
+
+    // Cleanup on destroy
+    this.events.once("destroy", () => {
+      if (this.eventSub) {
+        this.eventSub.unsubscribe();
+      }
+    });
   }
 
   private forceBroadcastPosition() {
@@ -202,7 +219,7 @@ export class GardenScene extends Phaser.Scene {
   update() {
     if (!this.cursors) return;
 
-    const speed = 3;
+    const speed = 180;
     let dx = 0;
     let dy = 0;
 
@@ -212,23 +229,21 @@ export class GardenScene extends Phaser.Scene {
     const sKey = keyboard?.addKey("S", false);
     const dKey = keyboard?.addKey("D", false);
 
-    if (this.cursors.left.isDown || aKey?.isDown) dx = -speed;
-    else if (this.cursors.right.isDown || dKey?.isDown) dx = speed;
+    if (this.cursors.left.isDown || aKey?.isDown) dx = -1;
+    else if (this.cursors.right.isDown || dKey?.isDown) dx = 1;
 
-    if (this.cursors.up.isDown || wKey?.isDown) dy = -speed;
-    else if (this.cursors.down.isDown || sKey?.isDown) dy = speed;
+    if (this.cursors.up.isDown || wKey?.isDown) dy = -1;
+    else if (this.cursors.down.isDown || sKey?.isDown) dy = 1;
 
-    // Move player
-    this.player.x = Phaser.Math.Clamp(
-      this.player.x + dx,
-      0,
-      GRID_WIDTH * TILE_SIZE
-    );
-    this.player.y = Phaser.Math.Clamp(
-      this.player.y + dy,
-      0,
-      GRID_HEIGHT * TILE_SIZE
-    );
+    // Normalize diagonal movement
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length > 0) {
+      dx /= length;
+      dy /= length;
+    }
+
+    this.player.setVelocity(dx * speed, dy * speed);
+    this.player.setDepth(this.player.y);
 
     // Broadcast local player position if moved
     if (
@@ -259,6 +274,7 @@ export class GardenScene extends Phaser.Scene {
         remote.targetY,
         LERP_SPEED
       );
+      remote.sprite.setDepth(remote.sprite.y);
       // Keep label above sprite
       remote.label.setPosition(remote.sprite.x, remote.sprite.y - 20);
     });
@@ -295,14 +311,63 @@ export class GardenScene extends Phaser.Scene {
   }
 
   private addPlantSprite(plant: PlacedPlant) {
-    const texture = MILESTONE_TEXTURE[plant.milestone] || "plant_seed";
-    const sprite = this.add
-      .image(
+    if (plant.asset_url) {
+      const textureKey = `dynamic_${plant.asset_url}`;
+      if (this.textures.exists(textureKey)) {
+        this.createPlantImage(plant, textureKey);
+      } else {
+        this.load.image(textureKey, plant.asset_url);
+        this.load.once(`filecomplete-image-${textureKey}`, () => {
+          this.createPlantImage(plant, textureKey);
+        });
+        this.load.start();
+      }
+    } else {
+      const textureKey = MILESTONE_TEXTURE[plant.milestone] || "plant_seed";
+      this.createPlantImage(plant, textureKey);
+    }
+  }
+
+  private createPlantImage(plant: PlacedPlant, textureKey: string) {
+    if (!this.sys || !this.sys.displayList) return; // Prevent crash if scene is destroyed
+
+    // Use plantGroup.create to get an Arcade.Sprite with a static body
+    const sprite = this.plantGroup.create(
+      plant.gridX * TILE_SIZE + TILE_SIZE / 2,
+      plant.gridY * TILE_SIZE + TILE_SIZE / 2,
+      textureKey
+    ) as Phaser.Physics.Arcade.Sprite;
+    
+    sprite.setDepth(plant.gridY * TILE_SIZE + TILE_SIZE); // Simple Y-sort depth
+
+    if (plant.asset_url) {
+      // The new sprites are 100x100 with a trunk width designed to fit the 32x32 tile exactly.
+      sprite.setScale(1);
+      
+      // Set origin to bottom-center so the tree stands on the tile
+      sprite.setOrigin(0.5, 1);
+      sprite.setPosition(
         plant.gridX * TILE_SIZE + TILE_SIZE / 2,
-        plant.gridY * TILE_SIZE + TILE_SIZE / 2,
-        texture
-      )
-      .setDepth(3);
+        plant.gridY * TILE_SIZE + TILE_SIZE
+      );
+      
+      // Refresh body to sync internal physics coordinates
+      sprite.refreshBody();
+
+      // Hitbox for the tree trunk (24px wide, 16px high at the very bottom center)
+      sprite.body!.setSize(24, 16);
+      // For static bodies, we must manually update position.x and position.y
+      // since setOffset often fails to shift static bounding boxes
+      sprite.body!.position.x = sprite.x - 12; 
+      sprite.body!.position.y = sprite.y - 16;
+    } else {
+      sprite.refreshBody();
+      
+      // Hitbox for standard placeholder shapes (24px wide, 24px high)
+      sprite.body!.setSize(24, 24);
+      sprite.body!.position.x = sprite.x - 12;
+      sprite.body!.position.y = sprite.y - 12;
+    }
 
     sprite.setInteractive();
     sprite.on("pointerover", () => {
