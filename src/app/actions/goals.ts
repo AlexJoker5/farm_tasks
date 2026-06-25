@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import fs from "fs";
+import path from "path";
 
 import { rrulestr } from "rrule";
 
@@ -123,10 +125,24 @@ export async function completeTask(goalId: string, completedSubTaskIds: string[]
     return { error: "Not authenticated" };
   }
 
+  let randomSpriteUrl = null;
+  try {
+    const spritesDir = path.join(process.cwd(), "public", "tree sprites");
+    const files = fs.readdirSync(spritesDir);
+    const images = files.filter(f => f.endsWith('.png') || f.endsWith('.jpg'));
+    if (images.length > 0) {
+      const randomImage = images[Math.floor(Math.random() * images.length)];
+      randomSpriteUrl = `/tree sprites/${randomImage}`;
+    }
+  } catch (err) {
+    console.error("Failed to read tree sprites", err);
+  }
+
   const { data, error } = await supabase.rpc("complete_task", {
     p_goal_id: goalId,
     p_notes: notes || null,
     p_completed_sub_task_ids: completedSubTaskIds,
+    p_mature_asset_url: randomSpriteUrl,
   });
 
   if (error) {

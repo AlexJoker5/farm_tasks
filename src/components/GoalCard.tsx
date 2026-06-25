@@ -36,6 +36,7 @@ export interface Goal {
   rrule_string: string | null;
   sub_tasks?: SubTask[];
   tasks?: TaskCompletion[];
+  asset_url?: string | null;
 }
 
 const MILESTONE_EMOJI: Record<string, string> = {
@@ -251,9 +252,13 @@ export default function GoalCard({ goal }: { goal: Goal }) {
         </div>
 
         <div className="flex items-start gap-3 mb-3">
-          <span className="text-3xl" title={MILESTONE_LABELS[goal.current_milestone]}>
-            {displayEmoji}
-          </span>
+          {goal.asset_url ? (
+            <img src={goal.asset_url} alt="Tree" className="w-10 h-10 object-contain" style={{ imageRendering: 'pixelated' }} />
+          ) : (
+            <span className="text-3xl" title={MILESTONE_LABELS[goal.current_milestone]}>
+              {displayEmoji}
+            </span>
+          )}
           <div className="flex-1 min-w-0">
             <h3 className="text-[var(--text-primary)] font-semibold truncate">
               {goal.title}

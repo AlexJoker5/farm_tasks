@@ -11,6 +11,7 @@ interface PlacedPlant {
   milestone: string;
   title: string;
   goalId: string;
+  asset_url?: string | null;
 }
 
 interface UnplacedGoal {
@@ -18,6 +19,7 @@ interface UnplacedGoal {
   title: string;
   current_milestone: string;
   goal_type: string;
+  asset_url?: string | null;
 }
 
 interface GardenClientProps {
@@ -86,6 +88,7 @@ export default function GardenClient({
         milestone: goal.current_milestone,
         title: goal.title,
         goalId: goal.id,
+        asset_url: goal.asset_url,
       },
     ]);
 
@@ -208,7 +211,9 @@ export default function GardenClient({
                   className="flex items-center gap-2 text-sm"
                 >
                   <span>
-                    {p.milestone === "SEED"
+                    {p.asset_url ? (
+                      <img src={p.asset_url} alt="Tree" className="w-5 h-5 object-contain inline-block" style={{ imageRendering: 'pixelated' }} />
+                    ) : p.milestone === "SEED"
                       ? "🌰"
                       : p.milestone === "SPROUT"
                         ? "🌱"
@@ -266,21 +271,26 @@ export default function GardenClient({
                     disabled={placing}
                     className="w-full flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-default)] hover:border-[var(--accent-green)] transition-all text-left disabled:opacity-50"
                   >
-                    <span className="text-xl">
-                      {goal.current_milestone === "SPROUT"
-                        ? "🌱"
-                        : goal.current_milestone === "SAPLING"
-                          ? "🌿"
-                          : "🌳"}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-[var(--text-primary)] truncate">
+                    <div className="flex-1 flex items-center justify-between min-w-0">
+                      <span className="text-[var(--text-primary)] truncate block w-full text-sm font-medium pr-2">
+                        {goal.asset_url ? (
+                          <img src={goal.asset_url} alt="Tree" className="w-5 h-5 object-contain inline-block mr-2" style={{ imageRendering: 'pixelated' }} />
+                        ) : (
+                          <span className="mr-2">
+                            {goal.current_milestone === "SEED"
+                              ? "🌰"
+                              : goal.current_milestone === "SPROUT"
+                                ? "🌱"
+                                : goal.current_milestone === "SAPLING"
+                                  ? "🌿"
+                                  : "🌳"}
+                          </span>
+                        )}
                         {goal.title}
-                      </p>
-                      <p className="text-xs text-[var(--text-muted)]">
-                        {goal.current_milestone} ·{" "}
-                        {goal.goal_type.replace("_", "-")}
-                      </p>
+                      </span>
+                      <span className="pixel-text text-[8px] text-[var(--text-muted)] whitespace-nowrap">
+                        {goal.current_milestone} · {goal.goal_type.replace("_", "-")}
+                      </span>
                     </div>
                   </button>
                 ))}

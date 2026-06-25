@@ -51,7 +51,8 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
         goal_type,
         current_milestone,
         plant_state,
-        completion_rate
+        completion_rate,
+        asset_url
       )
     `
     )
@@ -64,6 +65,7 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
       id: string;
       title: string;
       current_milestone: string;
+      asset_url: string | null;
     } | null;
   };
 
@@ -72,6 +74,7 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
     title: string;
     current_milestone: string;
     goal_type: string;
+    asset_url: string | null;
   };
 
   // Transform for Phaser
@@ -83,6 +86,7 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
       milestone: p.goals!.current_milestone,
       title: p.goals!.title,
       goalId: p.goals!.id,
+      asset_url: p.goals!.asset_url,
     }));
 
   // Fetch unplaced goals (for the owner's plant picker)
@@ -92,7 +96,7 @@ export default async function GardenServerView({ targetUserId }: { targetUserId:
 
     const { data: goals } = await supabase
       .from("goals")
-      .select("id, title, current_milestone, goal_type")
+      .select("id, title, current_milestone, goal_type, asset_url")
       .eq("user_id", targetUserId)
       .in("current_milestone", ["SPROUT", "SAPLING", "MATURE"]);
 
